@@ -1,5 +1,6 @@
 .idea
-data/audio
-data/video
-data/image
-data/model
+*.wav
+*.mp4
+*.jpg
+data/model/clip_model.pt
+data/model/clip_processor/*
