@@ -81,7 +81,7 @@ def extract_audio_from_dataframe(df, start, end):
             pass  # Wait for all downloads to complete
 
 
-def main(start, end):
+def main(start, end, is_concurrent):
     df = pd.read_csv(CSV_FILE)
     df.rename(columns=NEW_COLUMNS, inplace=True)
 
@@ -90,9 +90,10 @@ def main(start, end):
 
     start_time = datetime.datetime.now()
 
-    # parallel processing code
-    extract_audio_from_dataframe(df, start, end)
-    # extract_clips(df, start, end)
+    if is_concurrent:
+        extract_audio_from_dataframe(df, start, end)
+    else:
+        extract_clips(df, start, end)
 
     end_time = datetime.datetime.now()
     duration = (end_time - start_time).total_seconds()
@@ -103,6 +104,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract audio/video clips from YouTube videos")
     parser.add_argument("--start", type=int, default=0, help="Starting index of dataframe (default: 0)")
     parser.add_argument("--end", type=int, default=-1, help="Starting index of dataframe (default: -1)")
+    parser.add_argument('--concurrent', action=argparse.BooleanOptionalAction)
+
     args = parser.parse_args()
 
-    main(args.start, args.end)
+    main(args.start, args.end, args.concurrent)
