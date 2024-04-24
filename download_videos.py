@@ -23,10 +23,10 @@ def download_video(video_id):
     output_path = './data/video'
     try:
         yt = YouTube(video_url)
-        stream = yt.streams.filter(progressive=True, file_extension='mp4').first()
+        stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
         if stream:
             # Download the video
-            stream.download(output_path, filename=f"{video_id}.mp4")
+            stream.download(output_path, filename=f"full_vid_{video_id}.mp4")
     except Exception as e:
         print(f"Error downloading video {video_id}: {str(e)}")
 
