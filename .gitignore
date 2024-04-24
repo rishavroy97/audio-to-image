@@ -5,3 +5,4 @@
 data/model/clip_model.pt
 data/model/clip_processor/*
 .ipynb_checkpoints/
+*.sbatch
