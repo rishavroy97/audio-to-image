@@ -8,5 +8,5 @@ data/model/clip_processor/*
 *.sbatch
 __pycache__/
 .locks/
-models--facebook--hubert-large-ls960-ft/
+models/
 *.out
