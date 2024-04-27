@@ -30,11 +30,11 @@ class AudioDataset(Dataset):
         new_frequency = 16000
         transform = torchaudio.transforms.Resample(sampling_rate, new_frequency)
         waveform = transform(waveform)
-        mono_waveform = torch.mean(waveform, dim=0, keepdim=True).tolist()
+        mono_waveform = torch.mean(waveform, dim=0, keepdim=True)
         return mono_waveform, new_frequency
 
     def remove_invalid_rows(self):
-        self.df['is_valid'] = self.df['img_path'].apply(AudioDataset.check_validity)
+        self.df['is_valid'] = self.df['audio_path'].apply(AudioDataset.check_validity)
         self.df = self.df[self.df['is_valid'] == True]
         self.df = self.df.drop(columns=['is_valid'])
 
@@ -58,7 +58,7 @@ class AudioDataset(Dataset):
             label = self.df.loc[idx, 'label'].values[0]
             audio_path = self.df.loc[idx, 'audio_path'].values[0]
             waveform, sample_rate = torchaudio.load(audio_path, channels_first=True)
-            waveform, sample_rate = self.transform_waveform(waveform, sample_rate)
+            waveform, sample_rate = AudioDataset.transform_waveform(waveform, sample_rate)
             return waveform, label
 
         except:
