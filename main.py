@@ -30,4 +30,4 @@ pipe = pipe.to("cuda")
 # pass audio array into pipeline
 image = pipe(audio).images[0]
 
-image.save("generated_image.jpg")
+image.save("./images/generated_image.jpg")
