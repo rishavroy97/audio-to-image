@@ -23,7 +23,7 @@ CSV_FILE = "./vggsound.csv"
 DATA_DIR = "./data/audio"
 START_EPOCH = 0
 CHECKPOINT_DIR = './checkpoints'
-BEST_MODEL_DIR = '.models/audio-downsample'
+BEST_MODEL_DIR = './models/audio-downsample'
 
 # Loss Calculator
 criterion = torch.nn.MSELoss()
