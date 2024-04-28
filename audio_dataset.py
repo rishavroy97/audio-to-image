@@ -14,11 +14,16 @@ NEW_COLUMN_NAMES = {
 
 
 class AudioDataset(Dataset):
-    def __init__(self, csv_file, audio_dir):
+    def __init__(self, csv_file, audio_dir, split='train'):
+        if split not in ['train', 'val']:
+            raise ValueError('Split must be either "train" or "val"')
+
+        split = 'test' if split == 'val' else 'train'
         self.audio_dir = audio_dir
         self.df = pd.read_csv(csv_file)
         self.rename_columns()
         self.add_columns()
+        self.df = self.df[self.df['split'] == split]
         self.remove_invalid_rows()
         self.df = self.df.head(32)
 
@@ -36,7 +41,7 @@ class AudioDataset(Dataset):
 
     def remove_invalid_rows(self):
         self.df['is_valid'] = self.df['audio_path'].apply(AudioDataset.check_validity)
-        self.df = self.df[self.df['is_valid'] == True]
+        self.df = self.df[self.df['is_valid']]
         self.df = self.df.drop(columns=['is_valid'])
 
     def rename_columns(self):
