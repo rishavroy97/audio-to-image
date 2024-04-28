@@ -1,17 +1,23 @@
 import torch
 from sentence_transformers import SentenceTransformer
+from torch.utils.data import DataLoader
 from transformers import AutoProcessor, HubertModel
 
+from audio_dataset import AudioDataset
 from audio_downsampler import AudioDownsample
-
-processor = AutoProcessor.from_pretrained("facebook/hubert-large-ls960-ft", cache_dir=".")
-audio_model = HubertModel.from_pretrained("facebook/hubert-large-ls960-ft", cache_dir=".")
-text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+processor = AutoProcessor.from_pretrained("facebook/hubert-large-ls960-ft", cache_dir="./models")
+audio_model = HubertModel.from_pretrained("facebook/hubert-large-ls960-ft", cache_dir="./models").to(device)
+text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2', cache_folder='./models')
+
 # Training params
+AUDIO_INPUT_CAP = 10000
 NUM_EPOCHS = 1000
+BATCH_SIZE = 32
+CSV_FILE = "./vggsound.csv"
+DATA_DIR = "./data/audio"
 
 # Model
 audio_downsample = AudioDownsample().to(device)
@@ -33,27 +39,43 @@ lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 # Loss Calculator
 criterion = torch.nn.CrossEntropyLoss()
 
+# Dataset
+dataset = AudioDataset(CSV_FILE, DATA_DIR)
 
-def train(num_epochs=1000):
-    # Training loop
+# Dataloader
+dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+
+def train(num_epochs=10):
     for epoch in range(num_epochs):
-        # TODO: get details from a data loader
-        for inputs, labels in dataloader:
+        for audios, labels in dataloader:
             # Forward pass
-            # TODO: fix this line
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            audios = audios.to(device)
+            audios = audios.squeeze(1)
+            labels = list(labels)
+
+            processed_audios = processor(audios, return_tensors="pt", sampling_rate=16000).input_values.squeeze(0).to(
+                device)
+            audio_embeddings = audio_model(processed_audios[:, :AUDIO_INPUT_CAP]).last_hidden_state.to(device)
+            audio_ds_output = audio_downsample(audio_embeddings).to(device)
+
+            text = text_model.encode(labels)
+            prompt_embeddings = torch.tensor(text).to(device)
+            loss = criterion(audio_ds_output, prompt_embeddings)
 
             # Backward pass and optimization
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
+        lr_scheduler.step(epoch)
+
         # Print loss every few epochs
         if (epoch + 1) % 100 == 0:
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
     print('Training finished!')
+    print(f'Final Loss: {loss.item():.4f}')
 
 
 if __name__ == '__main__':
