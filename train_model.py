@@ -101,7 +101,6 @@ def train(start=0, num_epochs=10):
     # Load best loss
     best_model_path = f'{BEST_MODEL_DIR}/best_model.pth'
     best_loss = float('inf')
-    loss = float('inf')
     if os.path.exists(best_model_path):
         best_model = torch.load(best_model_path)
         best_loss = best_model['loss']
@@ -114,11 +113,11 @@ def train(start=0, num_epochs=10):
             # Forward Pass
             audio_ds_output, prompt_embeddings = forward_pass(audios, labels, audio_downsample)
 
-            loss = criterion(audio_ds_output, prompt_embeddings)
+            train_loss = criterion(audio_ds_output, prompt_embeddings)
 
             # Backward pass and optimization
             optimizer.zero_grad()
-            loss.backward()
+            train_loss.backward()
             optimizer.step()
 
         lr_scheduler.step(epoch)
@@ -142,7 +141,7 @@ def train(start=0, num_epochs=10):
 
         if (epoch + 1) % 30 == 0:
             # Print loss every few epochs
-            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {val_loss:.4f}')
 
             # Save checkpoint
             if not os.path.exists(CHECKPOINT_DIR):
@@ -153,12 +152,13 @@ def train(start=0, num_epochs=10):
                 'epoch': epoch,
                 'model_state_dict': audio_downsample.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': loss
+                'train_loss': train_loss,
+                'val_loss': val_loss,
             }, checkpoint_path)
             print(f"Saved checkpoint: {epoch}")
 
     print('Training finished!')
-    print(f'Final Loss: {loss.item():.4f}')
+    print(f'Final Loss: {val_loss:.4f}')
 
 
 if __name__ == '__main__':
