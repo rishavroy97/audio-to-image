@@ -16,7 +16,7 @@ text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2', cache_folder='./mode
 
 # Training params
 AUDIO_INPUT_CAP = 10000
-NUM_EPOCHS = 10
+NUM_EPOCHS = 100
 BATCH_SIZE = 32
 CSV_FILE = "./vggsound.csv"
 DATA_DIR = "/scratch/as18464/data/audio"
@@ -85,15 +85,17 @@ def train(start = 0, num_epochs=10):
         lr_scheduler.step(epoch)
 
         # Print loss every few epochs
-        if (epoch + 1) % 1 == 0:
-            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': audio_downsample.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'train_loss': loss
-        }, checkpoint_path)
+        if (epoch + 1) % 30 == 0:
+            checkpoint_path = f'{CHECKPOINT_DIR}/checkpoint_epoch{epoch}.pth'
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': audio_downsample.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'train_loss': loss
+            }, checkpoint_path)
+            print(f"Saved checkpoint: {epoch}")
 
     print('Training finished!')
     print(f'Final Loss: {loss.item():.4f}')
