@@ -17,7 +17,7 @@ text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2', cache_folder='./mode
 
 # Training params
 AUDIO_INPUT_CAP = 10000
-NUM_EPOCHS = 100
+NUM_EPOCHS = 1000
 BATCH_SIZE = 32
 CSV_FILE = "./vggsound.csv"
 DATA_DIR = "./data/audio"
@@ -139,9 +139,9 @@ def train(start=0, num_epochs=10):
             }, best_model_path)
             print(f'Best model saved at epoch {epoch}')
 
-        if (epoch + 1) % 30 == 0:
+        if epoch % 100 == 0:
             # Print loss every few epochs
-            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {val_loss:.4f}')
+            print(f'Epoch [{epoch}/{num_epochs}], Loss: {val_loss:.4f}')
 
             # Save checkpoint
             if not os.path.exists(CHECKPOINT_DIR):

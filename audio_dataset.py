@@ -25,7 +25,6 @@ class AudioDataset(Dataset):
         self.add_columns()
         self.df = self.df[self.df['split'] == split]
         self.remove_invalid_rows()
-        self.df = self.df.head(32)
 
     @staticmethod
     def check_validity(file_path):
