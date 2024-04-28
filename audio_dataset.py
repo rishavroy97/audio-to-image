@@ -49,17 +49,11 @@ class AudioDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx):
-        try:
-            if torch.is_tensor(idx):
-                idx = idx.tolist()
-            else:
-                idx = [idx]
+        label = self.df.iloc[idx]['label']
+        audio_path = self.df.iloc[idx]['audio_path']
+        waveform, sample_rate = torchaudio.load(audio_path, channels_first=True)
+        waveform, sample_rate = AudioDataset.transform_waveform(waveform, sample_rate)
+        return waveform, label
 
-            label = self.df.loc[idx, 'label'].values[0]
-            audio_path = self.df.loc[idx, 'audio_path'].values[0]
-            waveform, sample_rate = torchaudio.load(audio_path, channels_first=True)
-            waveform, sample_rate = AudioDataset.transform_waveform(waveform, sample_rate)
-            return waveform, label
-
-        except:
-            return None, None
+    def get_df(self):
+        return self.df
