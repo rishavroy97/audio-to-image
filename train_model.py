@@ -166,4 +166,6 @@ if __name__ == '__main__':
     parser.add_argument("--start", type=int, default=START_EPOCH, help="Starting index epoch")
     args = parser.parse_args()
 
+    print(f"Training Dataset Size: {train_dataset.__len__()}")
+    print(f"Validation Dataset Size: {val_dataset.__len__()}")
     train(args.start, NUM_EPOCHS)
