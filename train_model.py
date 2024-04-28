@@ -14,12 +14,14 @@ text_model = SentenceTransformer('paraphrase-MiniLM-L6-v2', cache_folder='./mode
 
 # Training params
 AUDIO_INPUT_CAP = 10000
-NUM_EPOCHS = 1000
+NUM_EPOCHS = 100
 BATCH_SIZE = 32
 CSV_FILE = "./vggsound.csv"
-DATA_DIR = "./data/audio"
+DATA_DIR = "/scratch/as18464/data/audio"
+START_EPOCH = 0
+CHECKPOINT_DIR = './checkpoints'
 
-# Model
+# Audio Downsampler
 audio_downsample = AudioDownsample().to(device)
 
 # Optimizer
@@ -37,7 +39,7 @@ lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 )
 
 # Loss Calculator
-criterion = torch.nn.CrossEntropyLoss()
+criterion = torch.nn.MSELoss()
 
 # Dataset
 dataset = AudioDataset(CSV_FILE, DATA_DIR)
@@ -46,7 +48,16 @@ dataset = AudioDataset(CSV_FILE, DATA_DIR)
 dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 
-def train(num_epochs=10):
+def train(start = 0, num_epochs=10):
+
+    checkpoint_path = f'{CHECKPOINT_DIR}/checkpoint_epoch{epoch}.pth'
+    
+    if os.path.exists(checkpoint_path):
+        checkpoint = torch.load(checkpoint_path)
+        audio_downsample = AudioDownsample()
+        audio_downsample.load_state_dict(checkpoint['model_state_dict']).to(device)
+        optimizer = torch.optim.AdamW(checkpoint['optimizer_state_dict'])
+
     for epoch in range(num_epochs):
         for audios, labels in dataloader:
             # Forward pass
@@ -71,12 +82,19 @@ def train(num_epochs=10):
         lr_scheduler.step(epoch)
 
         # Print loss every few epochs
-        if (epoch + 1) % 100 == 0:
+        if (epoch + 1) % 1 == 0:
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'train_loss': train_loss
+        }, checkpoint_path)
 
     print('Training finished!')
     print(f'Final Loss: {loss.item():.4f}')
 
 
 if __name__ == '__main__':
-    train(NUM_EPOCHS)
+    train(START_EPOCH, NUM_EPOCHS)
