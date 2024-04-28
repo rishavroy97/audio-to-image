@@ -125,7 +125,8 @@ def train(start=0, num_epochs=10):
         # Validation phase
         val_loss = calculate_validation_loss(audio_downsample, val_dataloader)
 
-        if val_loss < best_loss:
+        # Save the best model every 20 epochs
+        if epoch % 20 == 0 and val_loss < best_loss:
             best_loss = val_loss
 
             # Save the best model
