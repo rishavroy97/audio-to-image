@@ -1,3 +1,6 @@
+import argparse
+import os
+
 import torch
 from sentence_transformers import SentenceTransformer
 from torch.utils.data import DataLoader
@@ -5,8 +8,6 @@ from transformers import AutoProcessor, HubertModel
 
 from audio_dataset import AudioDataset
 from audio_downsampler import AudioDownsample
-
-import os
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -19,7 +20,7 @@ AUDIO_INPUT_CAP = 10000
 NUM_EPOCHS = 100
 BATCH_SIZE = 32
 CSV_FILE = "./vggsound.csv"
-DATA_DIR = "/scratch/as18464/data/audio"
+DATA_DIR = "./data/audio"
 START_EPOCH = 0
 CHECKPOINT_DIR = './checkpoints'
 
@@ -33,11 +34,8 @@ dataset = AudioDataset(CSV_FILE, DATA_DIR)
 dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 
-def train(start = 0, num_epochs=10):
-
-    checkpoint_path = f'{CHECKPOINT_DIR}/checkpoint_epoch{start}.pth'
-
-    # Audio Downsampler
+def train(start=0, num_epochs=10):
+    # Model
     audio_downsample = AudioDownsample().to(device)
 
     # Optimizer
@@ -54,14 +52,17 @@ def train(start = 0, num_epochs=10):
         threshold=0.01,
     )
 
-    if os.path.exists(checkpoint_path):
+    # Load checkpoint
+    checkpoint_path = f'{CHECKPOINT_DIR}/checkpoint_epoch{start}.pth'
+    if start > 0 and os.path.exists(checkpoint_path):
         checkpoint = torch.load(checkpoint_path)
-        # audio_downsample = AudioDownsample()
-        audio_downsample.load_state_dict(checkpoint['model_state_dict']).to(device)
+        audio_downsample.load_state_dict(checkpoint['model_state_dict'])
         optimizer = torch.optim.AdamW(checkpoint['optimizer_state_dict'])
         loss = checkpoint['train_loss']
+        start = checkpoint['epoch']
+        print(f'Loaded checkpoint at epoch {start}')
 
-    for epoch in range(num_epochs):
+    for epoch in range(start, num_epochs):
         for audios, labels in dataloader:
             # Forward pass
             audios = audios.to(device)
@@ -84,10 +85,11 @@ def train(start = 0, num_epochs=10):
 
         lr_scheduler.step(epoch)
 
-        # Print loss every few epochs
-        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
-
         if (epoch + 1) % 30 == 0:
+            # Print loss every few epochs
+            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+            # Save checkpoint
             checkpoint_path = f'{CHECKPOINT_DIR}/checkpoint_epoch{epoch}.pth'
             torch.save({
                 'epoch': epoch,
@@ -102,4 +104,8 @@ def train(start = 0, num_epochs=10):
 
 
 if __name__ == '__main__':
-    train(START_EPOCH, NUM_EPOCHS)
+    parser = argparse.ArgumentParser(description="Train Model for 1000 Epoch")
+    parser.add_argument("--start", type=int, default=START_EPOCH, help="Starting index epoch")
+    args = parser.parse_args()
+
+    train(args.start, NUM_EPOCHS)

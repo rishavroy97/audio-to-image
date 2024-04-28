@@ -20,7 +20,7 @@ class AudioDataset(Dataset):
         self.rename_columns()
         self.add_columns()
         self.remove_invalid_rows()
-        # self.df = self.df.head(10)
+        self.df = self.df.head(32)
 
     @staticmethod
     def check_validity(file_path):
