@@ -19,7 +19,7 @@ clip_tokenizer = CLIPTokenizer.from_pretrained("laion/CLIP-ViT-H-14-laion2B-s32B
 
 # Training params
 AUDIO_INPUT_CAP = 10000
-NUM_EPOCHS = 50
+NUM_EPOCHS = 25
 BATCH_SIZE = 32
 CSV_FILE = "./vggsound.csv"
 DATA_DIR = "./data/audio"
@@ -113,6 +113,7 @@ def train(start=0, num_epochs=10):
 
     train_losses = []
     val_losses = []
+    epoch_count = 0
     val_loss = float('inf')
 
     for epoch in range(start, num_epochs):
@@ -133,8 +134,11 @@ def train(start=0, num_epochs=10):
         # Validation phase
         val_loss = calculate_validation_loss(audio_downsample, val_dataloader)
 
+        # Save the losses (every epoch)
         val_losses.append(val_loss)
         train_losses.append(train_loss.item())
+        epoch_count += 1
+        save_losses(train_losses, val_losses, start, epoch_count)
 
         # Save the best model every 10 epochs
         if epoch % 10 == 0:
