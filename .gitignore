@@ -2,6 +2,7 @@
 *.wav
 *.mp4
 *.jpg
+!Architecture.jpg
 data/model/clip_model.pt
 data/model/clip_processor/*
 .ipynb_checkpoints/
@@ -11,3 +12,4 @@ __pycache__/
 models/
 *.out
 checkpoints/
+audio/
