@@ -24,6 +24,8 @@ class AudioDataset(Dataset):
         self.rename_columns()
         self.add_columns()
         self.df = self.df[self.df['split'] == split]
+        self.df['label'] += ' '
+        self.df['label'] = self.df['label'] * 100
         self.remove_invalid_rows()
 
     @staticmethod
