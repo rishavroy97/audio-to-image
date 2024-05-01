@@ -118,11 +118,16 @@ def train(start=0, num_epochs=10):
 
     for epoch in range(start, num_epochs):
         # Training
+        total_train_loss = 0.0
+        num_train_samples = 0
         audio_downsample.train()
         for audios, labels in train_dataloader:
             # Forward Pass
             audio_ds_output, prompt_embeddings = forward_pass(audios, labels, audio_downsample)
             train_loss = criterion(audio_ds_output, prompt_embeddings)
+
+            total_train_loss += train_loss.item() * audios.size(0)
+            num_train_samples += audios.size(0)
 
             # Backward pass and optimization
             optimizer.zero_grad()
@@ -136,12 +141,16 @@ def train(start=0, num_epochs=10):
 
         # Save the losses (every epoch)
         val_losses.append(val_loss)
-        train_losses.append(train_loss.item())
+        epoch_train_loss = total_train_loss / num_train_samples
+        train_losses.append(epoch_train_loss)
         epoch_count += 1
         save_losses(train_losses, val_losses, start, epoch_count)
 
+        # Print loss every epoch
+        print(f'Epoch [{epoch}/{num_epochs}], Loss: {val_loss:.4f}')
+
         # Save the best model every 10 epochs
-        if epoch % 10 == 0:
+        if epoch % 5 == 0:
             if val_loss < best_loss:
                 best_loss = val_loss
 
@@ -155,9 +164,6 @@ def train(start=0, num_epochs=10):
                     'loss': best_loss,
                 }, best_model_path)
                 print(f'Best model saved at epoch {epoch}')
-
-            # Print loss every few epochs
-            print(f'Epoch [{epoch}/{num_epochs}], Loss: {val_loss:.4f}')
 
             # Save checkpoint
             if not os.path.exists(CHECKPOINT_DIR):
