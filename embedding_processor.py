@@ -1,9 +1,9 @@
 import torch.nn as nn
 
 
-class AudioDownsample(nn.Module):
+class AudioEmbeddingProcessor(nn.Module):
     def __init__(self):
-        super(AudioDownsample, self).__init__()
+        super(AudioEmbeddingProcessor, self).__init__()
 
         input_size = 31 * 1024
         embedding_size = 77 * 1024

@@ -7,7 +7,7 @@ from transformers import AutoProcessor, HubertModel
 from transformers import CLIPTokenizer, CLIPTextModel
 
 from audio_dataset import AudioDataset
-from audio_downsampler import AudioDownsample
+from embedding_processor import AudioEmbeddingProcessor
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -78,7 +78,7 @@ def calculate_validation_loss(model, val_loader):
 
 def train(start=0, num_epochs=10):
     # Model
-    audio_downsample = AudioDownsample().to(device)
+    audio_downsample = AudioEmbeddingProcessor().to(device)
 
     # Optimizer
     optimizer = torch.optim.AdamW(audio_downsample.parameters(), lr=5e-3, weight_decay=1e-5)

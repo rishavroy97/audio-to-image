@@ -1,9 +1,9 @@
 import torch.nn as nn
 
 
-class AudioCNNDownsample(nn.Module):
+class AudioCNNEmbeddingProcessor(nn.Module):
     def __init__(self):
-        super(AudioCNNDownsample, self).__init__()
+        super(AudioCNNEmbeddingProcessor, self).__init__()
 
         # Define layers for your neural network
         self.conv1 = nn.Conv1d(in_channels=31, out_channels=64, kernel_size=3, stride=1, padding=1)
