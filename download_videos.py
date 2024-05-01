@@ -3,6 +3,9 @@ import concurrent.futures
 import datetime
 import os
 
+import ssl
+ssl._create_default_https_context = ssl._create_stdlib_context
+
 import pandas as pd
 import torch
 from pytube import YouTube
