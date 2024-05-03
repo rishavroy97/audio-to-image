@@ -17,12 +17,16 @@ NEW_COLUMNS = {
     'test': 'split',
 }
 
+CORRUPTED_FILES = ['1WRx5JqaCy0', '1WbvSHeHf5g', '0WbBuzhazto', '-x7xMm47pfc', '-ixUrPNPogg', '-bBaZT4tEko']
 
 def extract_audio_clip(video_id, start_time):
     input_video_path = './data/video/full_vid_' + video_id + '.mp4'
     if not os.path.exists(input_video_path):
         return
 
+    if video_id in CORRUPTED_FILES:
+        print(f'Skipping corrupted file: {video_id}')
+        return
     try:
         video_clip = VideoFileClip(input_video_path)
 
