@@ -24,10 +24,10 @@ def extract_audio_clip(video_id, start_time):
     if not os.path.exists(input_video_path):
         return
 
-    if video_id in CORRUPTED_FILES:
-        print(f'Skipping corrupted file: {video_id}')
-        return
     try:
+        if video_id in CORRUPTED_FILES:
+            raise Exception(f'Skipping corrupted file: {video_id}')
+
         video_clip = VideoFileClip(input_video_path)
 
         if video_clip.duration < start_time + TIME_DURATION_IN_SEC:
